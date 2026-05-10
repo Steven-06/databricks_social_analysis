@@ -1,38 +1,37 @@
-import pandas as pd
-import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-import nltk
+from pyspark.ml.feature import RegexTokenizer, StopWordsRemover, HashingTF, IDF
+from pyspark.ml import Pipeline
+from pyspark.sql.functions import udf, col, lower, regexp_replace
+from pyspark.sql.types import ArrayType, StringType
 
 # ─────────────────────────────────────────────
-# Stopwords
+# Load the Dataset
 # ─────────────────────────────────────────────
-nltk.download('stopwords')
-from nltk.corpus import stopwords
-STOPWORDS = set(stopwords.words('english'))
-
-# ─────────────────────────────────────────────
-# Load the Cleaned Dataset
-# ─────────────────────────────────────────────
-df = spark.table("default.social_analysis_refined").toPandas()
-print("Dataset loaded:", df.shape)
-print(df['headline'].head())
+df = spark.table("default.social_analysis_refined")
+print("Dataset loaded:", df.count())
+df.select("headline").show(5, truncate=50)
 
 # ─────────────────────────────────────────────
 # Text Cleaning
 # ─────────────────────────────────────────────
-def clean_text(text):
-    text = text.lower()
-    text = re.sub(r'http\S+|www\S+', '', text)  # remove URLs
-    text = re.sub(r'[^a-z\s]', '', text)         # remove punctuation/numbers
-    text = re.sub(r'\s+', ' ', text).strip()      # fix whitespace
-    tokens = [w for w in text.split() if w not in STOPWORDS]
-    return ' '.join(tokens)
+df = df.withColumn("cleaned_headline", lower(col("headline")))
+df = df.withColumn("cleaned_headline", regexp_replace(col("cleaned_headline"), r"http\S+|www\S+", ""))
+df = df.withColumn("cleaned_headline", regexp_replace(col("cleaned_headline"), r"[^a-z\s]", ""))
+df = df.withColumn("cleaned_headline", regexp_replace(col("cleaned_headline"), r"\s+", " "))
 
-df['cleaned_headline'] = df['headline'].apply(clean_text)
-print(df[['headline', 'cleaned_headline']].head(3))
+df.select("headline", "cleaned_headline").show(3, truncate=60)
 
 # ─────────────────────────────────────────────
-# Tokenization and Lemmatization
+# Tokenization and Stopword Removal
+# ─────────────────────────────────────────────
+tokenizer = RegexTokenizer(inputCol="cleaned_headline", outputCol="tokens", pattern="\\s+")
+remover = StopWordsRemover(inputCol="tokens", outputCol="filtered_tokens")
+
+# Run tokenization and stopword removal first
+pipeline_prep = Pipeline(stages=[tokenizer, remover])
+df = pipeline_prep.fit(df).transform(df)
+
+# ─────────────────────────────────────────────
+# Lemmatization via UDF
 # ─────────────────────────────────────────────
 def simple_lemmatize(word):
     if word.endswith('ing') and len(word) > 5:
@@ -53,45 +52,38 @@ def simple_lemmatize(word):
         return word[:-1]
     return word
 
-def tokenize_and_lemmatize(text):
-    tokens = re.findall(r'\b[a-z]+\b', text)
-    return [simple_lemmatize(t) for t in tokens]
+lemmatize_udf = udf(lambda tokens: [simple_lemmatize(t) for t in tokens], ArrayType(StringType()))
+df = df.withColumn("lemmatized_tokens", lemmatize_udf(col("filtered_tokens")))
 
-df['tokens'] = df['cleaned_headline'].apply(tokenize_and_lemmatize)
-df['processed_headline'] = df['tokens'].apply(lambda t: ' '.join(t))
-print(df[['cleaned_headline', 'tokens', 'processed_headline']].head(3))
+df.select("cleaned_headline", "filtered_tokens", "lemmatized_tokens").show(3, truncate=50)
 
 # ─────────────────────────────────────────────
-# TF-IDF Feature Engineering
+# TF-IDF
 # ─────────────────────────────────────────────
-vectorizer = TfidfVectorizer(max_features=100, ngram_range=(1, 2), min_df=2)
-tfidf_matrix = vectorizer.fit_transform(df['processed_headline'])
-feature_names = vectorizer.get_feature_names_out()
+hashingTF = HashingTF(inputCol="lemmatized_tokens", outputCol="raw_features", numFeatures=100)
+idf = IDF(inputCol="raw_features", outputCol="tfidf_features")
 
-print("TF-IDF shape:", tfidf_matrix.shape)
-print("Sample features:", list(feature_names[:10]))
+pipeline_tfidf = Pipeline(stages=[hashingTF, idf])
+result = pipeline_tfidf.fit(df).transform(df)
+
+result.select("headline", "lemmatized_tokens", "tfidf_features").show(3, truncate=50)
 
 # ─────────────────────────────────────────────
-# Save the TF-IDF Features
+# Save Outputs
 # ─────────────────────────────────────────────
+cols = ["id", "date", "source", "language", "country",
+        "topic_category", "topic_subcategory",
+        "headline", "cleaned_headline",
+        "sentiment", "engagement_score", "trend_score"]
 
-tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), columns=feature_names)
-tfidf_df.insert(0, 'id', df['id'].values)
-tfidf_df.insert(1, 'sentiment', df['sentiment'].values)
-tfidf_df.to_csv("tfidf_features.csv", index=False)
+result.select(cols).write.mode("overwrite").saveAsTable("default.preprocessed_data")
+result.select("id", "sentiment", "tfidf_features").write.mode("overwrite").saveAsTable("default.tfidf_features")
 
-cols = ['id', 'date', 'source', 'language', 'country',
-        'topic_category', 'topic_subcategory',
-        'headline', 'cleaned_headline', 'processed_headline',
-        'sentiment', 'engagement_score', 'trend_score']
-df[cols].to_csv("preprocessed_data.csv", index=False)
-
-print("Saved tfidf_features.csv and preprocessed_data.csv")
+print("Saved to default.preprocessed_data and default.tfidf_features")
 
 # ─────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────
-
-print(f"Total records: {len(df)}")
-print(f"TF-IDF features: {len(feature_names)}")
-print(df['sentiment'].value_counts())
+print("Total records:", result.count())
+print("TF-IDF features: 100")
+result.groupBy("sentiment").count().show()
