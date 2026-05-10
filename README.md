@@ -32,10 +32,18 @@ databricks_social_analysis/
 
 ### Prerequisites
 
+- **Python 3.8+**
+- **pip** package manager
+
 Install the required Python packages:
 
 ```bash
 pip install pandas numpy matplotlib seaborn scikit-learn wordcloud scipy pyspark
+```
+
+Or install from requirements file (if available):
+```bash
+pip install -r requirements.txt
 ```
 
 ### 1. Data Processing
@@ -52,7 +60,22 @@ df_final = df \
 df_final.write.mode("overwrite").saveAsTable("default.social_analysis_refined")
 ```
 
-### 2. Run Analysis Pipeline
+### 2. Prepare Input Data
+
+The scripts expect a `preprocessed_data.csv` file in the project root directory with the following columns:
+
+| Column | Type | Example |
+|--------|------|---------|
+| `date` | String (YYYY-MM-DD) | 2026-01-15 |
+| `headline` | String | "New AI breakthrough announced" |
+| `sentiment` | String | Positive/Neutral/Negative |
+| `engagement_score` | Integer | 1500 |
+| `trend_score` | Float | 8.75 |
+| `category` | String | ai_and_tech |
+
+The sample data is available in `data/trending_topics_2026_synthetic.csv`.
+
+### 3. Run Analysis Pipeline
 
 Execute scripts in order:
 
@@ -63,6 +86,8 @@ python 05b_topic_modeling.py      # Discover topics using LDA
 python 06_trend_analysis.py       # Analyze temporal trends
 python 07_evaluation.py           # Evaluate all models
 ```
+
+**Expected Runtime:** ~2-5 minutes total for all scripts on a standard machine
 
 ## 📊 Analysis Modules
 
@@ -120,28 +145,49 @@ python 07_evaluation.py           # Evaluate all models
 ✅ Cross-validation and rigorous model evaluation  
 ✅ Time-series trend analysis  
 
-## 📝 Notes
+## � Expected Outputs
 
-- The project uses synthetic data for demonstration
-- All scripts expect preprocessed data in CSV format
-- Databricks notebooks (formatter.py, NLP/NLP.py) require PySpark environment
-- Local analysis scripts use pandas, scikit-learn, and matplotlib
+Running the analysis pipeline generates:
 
----
+- **03_EDA.py:** Statistical summaries, distribution plots, word clouds
+- **05a_sentiment_model.py:** Trained model files, confusion matrices, ROC curves
+- **05b_topic_modeling.py:** LDA model, topic-word distributions, coherence scores
+- **06_trend_analysis.py:** Time-series plots, sentiment evolution charts, trend visualizations
+- **07_evaluation.py:** Cross-validation results, performance metrics, model comparisons
 
-### Implementation Reference
+*Note: Output files are typically saved in the working directory or displayed in notebooks.*
 
-```python
-df_final = df \
-    .withColumn("date", to_date(col("date"))) \
-    .withColumn("engagement_score", col("engagement_score").cast(IntegerType())) \
-    .withColumn("trend_score", col("trend_score").cast(DoubleType()))
+## 🐛 Troubleshooting
 
+### Issue: `ModuleNotFoundError: No module named 'X'`
+**Solution:** Ensure all packages are installed: `pip install -r requirements.txt`
+
+### Issue: `FileNotFoundError: preprocessed_data.csv`
+**Solution:** The CSV file must exist in the project root directory. Use the sample data:
+```bash
+cp data/trending_topics_2026_synthetic.csv preprocessed_data.csv
 ```
 
-## 🛠️ Tech Stack
+### Issue: Scripts are very slow
+**Solution:** 
+- Ensure you have at least 4GB RAM available
+- Close other applications to free up memory
+- Use Python 3.8+ for better performance
 
-* **Storage:** Unity Catalog (Volumes & Tables)
-* **Compute:** Databricks Serverless (Spark Connect)
-* **Language:** PySpark / SQL
-* **Version Control:** GitHub Integration
+### Issue: Matplotlib/Seaborn plots not displaying
+**Solution:** Ensure you have a display environment set up. On headless systems, add to scripts:
+```python
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
+```
+
+### Issue: Databricks/PySpark errors in formatter.py or NLP/NLP.py
+**Solution:** These scripts require a Databricks environment with Spark. For local testing, skip these files.
+
+## 📝 Notes
+
+- The project uses synthetic data for demonstration purposes
+- All local analysis scripts expect preprocessed data in CSV format
+- Databricks notebooks (formatter.py, NLP/NLP.py) require PySpark environment and Unity Catalog access
+- Local analysis scripts use pandas, scikit-learn, and matplotlib
+- Visualization outputs require a working display/backend environment
