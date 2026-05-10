@@ -73,8 +73,11 @@ result.select("headline", "lemmatized_tokens", "tfidf_features").show(3, truncat
 # ─────────────────────────────────────────────
 cols = ["id", "date", "source", "language", "country",
         "topic_category", "topic_subcategory",
-        "headline", "cleaned_headline",
+        "headline", "cleaned_headline","processed_headline",
         "sentiment", "engagement_score", "trend_score"]
+
+result = result.withColumn("processed_headline", 
+    array_join(col("lemmatized_tokens"), " "))
 
 result.select(cols).write.mode("overwrite").saveAsTable("default.preprocessed_data")
 result.select("id", "sentiment", "tfidf_features").write.mode("overwrite").saveAsTable("default.tfidf_features")
