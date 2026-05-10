@@ -50,14 +50,3 @@ The `cleaner.ipynb` notebook performs the following "Power Moves" to ensure data
 * **Compute:** Databricks Serverless (Spark Connect)
 * **Language:** PySpark / SQL
 * **Version Control:** GitHub Integration
-
----
-
-### How to use this:
-
-1. In your Databricks Repo sidebar, right-click and select **Create** > **File**.
-2. Name it `README.md`.
-3. Paste the content above.
-4. **Commit and Push** via the Git button.
-
-Now, whenever Ahmed, Aya, Taghreed, or Toka open the folder, they’ll see this professional guide right on the front page. You're officially done with the Lead Setup!
