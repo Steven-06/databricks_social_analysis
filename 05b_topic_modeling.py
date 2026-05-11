@@ -135,39 +135,6 @@ plt.savefig("lda_02_distribution.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved lda_02_distribution.png")
 
-# Plot 3: Topic & sentiment heatmap
-
-cross = pd.crosstab(df["lda_topic_name"], df["sentiment"])
-fig, ax = plt.subplots(figsize=(8, 5))
-sns.heatmap(cross, annot=True, fmt="d", cmap="YlOrBr", ax=ax,
-            linewidths=0.5, cbar_kws={"shrink": 0.8})
-ax.set_title("Topic × Sentiment distribution", fontsize=12, fontweight="bold")
-ax.set_xlabel("Sentiment")
-ax.set_ylabel("LDA Topic")
-plt.tight_layout()
-plt.savefig("lda_03_topic_sentiment.png", dpi=150, bbox_inches="tight")
-plt.close()
-print("Saved lda_03_topic_sentiment.png")
-
-# Plot 4: Mean document-topic probabilities (it is a heatmap)
-
-# Rows = subcategory, columns = topic
-subcat_topic = df.groupby("topic_subcategory").apply(
-    lambda g: pd.Series(topic_probs[g.index].mean(axis=0),
-                        index=[f"T{i+1}" for i in range(N_TOPICS)])
-)
-fig, ax = plt.subplots(figsize=(9, 8))
-sns.heatmap(subcat_topic, cmap="Blues", ax=ax, linewidths=0.3,
-            cbar_kws={"shrink": 0.8}, vmin=0)
-ax.set_title("Avg. topic probability by subcategory",
-             fontsize=12, fontweight="bold")
-ax.set_xlabel("LDA Topic")
-ax.set_ylabel("Subcategory")
-plt.tight_layout()
-plt.savefig("lda_04_subcat_topics.png", dpi=150, bbox_inches="tight")
-plt.close()
-print("Saved lda_04_subcat_topics.png")
-
 # Plot 5: Document topic confidence distribution
 
 fig, ax = plt.subplots(figsize=(8, 4))
