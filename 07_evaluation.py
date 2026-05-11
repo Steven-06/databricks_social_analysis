@@ -82,7 +82,7 @@ for name, model in MODELS.items():
           f"CV={cv_scores.mean():.4f}±{cv_scores.std():.4f}")
 
 best = max(evals, key=lambda k: evals[k]["f1"])
-print(f"\n  ✓ Best model: {best}")
+print(f"\n Best model: {best}")
 
 # ===============================
 # LDA topic coherence proxy
@@ -102,7 +102,7 @@ print(f"\n  LDA perplexity: {perplexity:.2f}")
 fig = plt.figure(figsize=(18, 13))
 gs  = gridspec.GridSpec(3, 3, figure=fig, hspace=0.45, wspace=0.4)
 
-# ── Panel 1: Model metric comparison ───────────────────────
+#1: Model metric comparison
 ax1 = fig.add_subplot(gs[0, :2])
 metric_names = ["accuracy", "precision", "recall", "f1"]
 x = np.arange(len(MODELS))
@@ -120,7 +120,7 @@ ax1.set_ylabel("Score")
 ax1.set_title("Classifier evaluation metrics", fontsize=11, fontweight="bold")
 ax1.legend(fontsize=8, ncol=3)
 
-# Panel 2: CV F1 scores 
+# 2: CV F1 scores 
 ax2 = fig.add_subplot(gs[0, 2])
 means = [evals[n]["cv_mean"] for n in MODELS]
 stds  = [evals[n]["cv_std"]  for n in MODELS]
@@ -131,7 +131,7 @@ ax2.axvline(1/3, color="red", linestyle="--", linewidth=1)
 ax2.set_title("5-fold CV F1 ± std", fontsize=11, fontweight="bold")
 ax2.set_xlabel("F1 weighted")
 
-# Panel 3: Confusion matrix (best model)
+#3: Confusion matrix (best model)
 ax3 = fig.add_subplot(gs[1, 0])
 sns.heatmap(evals[best]["cm"], annot=True, fmt="d", cmap="Blues",
             xticklabels=classes, yticklabels=classes, ax=ax3,
@@ -140,7 +140,7 @@ ax3.set_title(f"Confusion matrix\n{best}", fontsize=10, fontweight="bold")
 ax3.set_xlabel("Predicted")
 ax3.set_ylabel("True")
 
-# Panel 4: Per-class F1 
+#4: Per-class F1 
 ax4 = fig.add_subplot(gs[1, 1])
 report = classification_report(y_te, evals[best]["y_pred"],
                                 target_names=classes, output_dict=True)
@@ -157,7 +157,7 @@ ax4.axhline(1/3, color="gray", linestyle="--", linewidth=1)
 ax4.set_title(f"Per-class metrics\n{best}", fontsize=10, fontweight="bold")
 ax4.legend(fontsize=8)
 
-#  Panel 5: LDA topic distribution 
+# 5: LDA topic distribution 
 ax5 = fig.add_subplot(gs[1, 2])
 topic_assigns = lda.transform(X_lda).argmax(axis=1)
 unique, counts = np.unique(topic_assigns, return_counts=True)
@@ -166,7 +166,7 @@ ax5.bar([f"T{i+1}" for i in unique], counts, color=CAT_COLORS[:len(unique)],
 ax5.set_title(f"LDA topic sizes\n(perplexity: {perplexity:.1f})", fontsize=10, fontweight="bold")
 ax5.set_ylabel("Documents")
 
-# Panel 6: Sentiment over time 
+#6: Sentiment over time 
 ax6 = fig.add_subplot(gs[2, :])
 daily = df.groupby(["date","sentiment"]).size().unstack(fill_value=0).sort_index()
 for s in ["positive","neutral","negative"]:
