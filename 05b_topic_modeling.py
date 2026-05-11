@@ -135,7 +135,7 @@ plt.savefig("lda_02_distribution.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved lda_02_distribution.png")
 
-# Plot 5: Document topic confidence distribution
+# Plot 3: Document topic confidence distribution
 
 fig, ax = plt.subplots(figsize=(8, 4))
 ax.hist(df["lda_conf"], bins=30, color="#378ADD", edgecolor="white", linewidth=0.5)
