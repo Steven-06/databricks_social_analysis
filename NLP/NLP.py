@@ -1,6 +1,6 @@
 from pyspark.ml.feature import RegexTokenizer, StopWordsRemover, HashingTF, IDF
 from pyspark.ml import Pipeline
-from pyspark.sql.functions import udf, col, lower, regexp_replace
+from pyspark.sql.functions import udf, col, lower, regexp_replace , array_join
 from pyspark.sql.types import ArrayType, StringType
 
 # ─────────────────────────────────────────────
