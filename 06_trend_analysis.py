@@ -49,28 +49,6 @@ axes[0].set_title("Daily post volume by sentiment", fontsize=12, fontweight="bol
 axes[0].set_ylabel("Post count")
 axes[0].legend(loc="upper right", fontsize=9)
 axes[0].grid(axis="y", alpha=0.3)
-
-# Stacked area chart
-axes[1].stackplot(daily_sent.index,
-                  daily_sent.get("positive", 0),
-                  daily_sent.get("neutral", 0),
-                  daily_sent.get("negative", 0),
-                  labels=["Positive", "Neutral", "Negative"],
-                  colors=[SENT_COLORS[s] for s in ["positive", "neutral", "negative"]],
-                  alpha=0.75)
-axes[1].set_title("Sentiment volume — stacked area", fontsize=12, fontweight="bold")
-axes[1].set_ylabel("Post count")
-axes[1].xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
-axes[1].xaxis.set_major_locator(mdates.DayLocator(interval=4))
-plt.setp(axes[1].xaxis.get_majorticklabels(), rotation=30, ha="right")
-axes[1].legend(loc="upper right", fontsize=9)
-
-plt.suptitle("Sentiment trends — February 2026", fontsize=14, fontweight="bold")
-plt.tight_layout()
-plt.savefig("trend_01_sentiment_daily.png", dpi=150, bbox_inches="tight")
-plt.close()
-print("Saved trend_01_sentiment_daily.png")
-
 # ============================================================
 # Category activity over time
 # ============================================================
@@ -135,30 +113,6 @@ plt.tight_layout()
 plt.savefig("trend_03_engagement_time.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved trend_03_engagement_time.png")
-
-# ============================================================
-# Subcategory heat map over time
-# ============================================================
-# Aggregate by week × subcategory
-df["week_label"] = df["date"].dt.strftime("W%V (%b %d)")
-pivot = (
-    df.groupby(["week_label", "topic_subcategory"])
-    .size()
-    .unstack(fill_value=0)
-)
-
-fig, ax = plt.subplots(figsize=(14, 8))
-sns.heatmap(pivot.T, cmap="YlOrBr", ax=ax, linewidths=0.3,
-            cbar_kws={"shrink": 0.6, "label": "Post count"})
-ax.set_title("Subcategory activity by week", fontsize=13, fontweight="bold")
-ax.set_xlabel("Week")
-ax.set_ylabel("Subcategory")
-plt.xticks(rotation=15)
-plt.tight_layout()
-plt.savefig("trend_04_subcat_heatmap.png", dpi=150, bbox_inches="tight")
-plt.close()
-print("Saved trend_04_subcat_heatmap.png")
-
 # ============================================================
 # Top trending subcategories (bar race snapshot)
 # ============================================================
@@ -245,26 +199,6 @@ plt.tight_layout()
 plt.savefig("trend_07_wordclouds_category.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved trend_07_wordclouds_category.png")
-
-# ============================================================
-# Correlation matrix
-# ============================================================
-numeric_cols = ["engagement_score", "trend_score", "lda_topic" if "lda_topic" in df.columns else "engagement_score"]
-numeric_cols = [c for c in ["engagement_score", "trend_score"] if c in df.columns]
-corr_df = df[numeric_cols].copy()
-corr_df["sentiment_num"] = df["sentiment"].map({"negative": 0, "neutral": 1, "positive": 2})
-corr_df["category_num"]  = df["topic_category"].astype("category").cat.codes
-
-fig, ax = plt.subplots(figsize=(6, 5))
-sns.heatmap(corr_df.corr(), annot=True, fmt=".2f", cmap="coolwarm",
-            ax=ax, linewidths=0.5, vmin=-1, vmax=1, center=0,
-            cbar_kws={"shrink": 0.8})
-ax.set_title("Feature correlation matrix", fontsize=12, fontweight="bold")
-plt.tight_layout()
-plt.savefig("trend_08_correlation.png", dpi=150, bbox_inches="tight")
-plt.close()
-print("Saved trend_08_correlation.png")
-
 # ============================================================
 # Text report
 # ============================================================
