@@ -1,8 +1,8 @@
-# 📊 Social Media Trending Topics Analysis 2026
+# Social Media Trending Topics Analysis 2026
 
 A comprehensive data science project analyzing synthetic social media trends for 2026. This repository contains a complete pipeline for data processing, exploratory analysis, sentiment analysis, topic modeling, and trend analysis using both local Python analysis and Databricks integration.
 
-## 🎯 Project Overview
+## Project Overview
 
 This project analyzes trending social media topics across multiple dimensions:
 - **Exploratory Data Analysis (EDA)** - Statistical insights and visualizations
@@ -11,7 +11,7 @@ This project analyzes trending social media topics across multiple dimensions:
 - **Trend Analysis** - Temporal trends and evolution of topics
 - **Model Evaluation** - Comprehensive performance metrics and cross-validation
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 databricks_social_analysis/
@@ -28,7 +28,7 @@ databricks_social_analysis/
 └── README.md
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -89,7 +89,7 @@ python 07_evaluation.py           # Evaluate all models
 
 **Expected Runtime:** ~2-5 minutes total for all scripts on a standard machine
 
-## 📊 Analysis Modules
+## Analysis Modules
 
 ### 03_EDA.py - Exploratory Data Analysis
 - Statistical summaries and distributions
@@ -136,7 +136,7 @@ python 07_evaluation.py           # Evaluate all models
 - `trend_score`: DoubleType
 - `category`: StringType
 
-## 📈 Key Features
+## Key Features
 
 ✅ End-to-end data pipeline with Databricks Delta Lake integration  
 ✅ Multiple ML models for sentiment classification  
@@ -145,7 +145,7 @@ python 07_evaluation.py           # Evaluate all models
 ✅ Cross-validation and rigorous model evaluation  
 ✅ Time-series trend analysis  
 
-## � Expected Outputs
+## Expected Outputs
 
 Running the analysis pipeline generates:
 
@@ -157,7 +157,7 @@ Running the analysis pipeline generates:
 
 *Note: Output files are typically saved in the working directory or displayed in notebooks.*
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Issue: `ModuleNotFoundError: No module named 'X'`
 **Solution:** Ensure all packages are installed: `pip install -r requirements.txt`
