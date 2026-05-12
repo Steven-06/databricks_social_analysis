@@ -58,7 +58,7 @@ df = df.withColumn("lemmatized_tokens", lemmatize_udf(col("filtered_tokens")))
 df.select("cleaned_headline", "filtered_tokens", "lemmatized_tokens").show(3, truncate=50)
 
 # ─────────────────────────────────────────────
-# TF-IDF
+# TF-IDF (To Convert text into numerical vectors)
 # ─────────────────────────────────────────────
 hashingTF = HashingTF(inputCol="lemmatized_tokens", outputCol="raw_features", numFeatures=100)
 idf = IDF(inputCol="raw_features", outputCol="tfidf_features")
